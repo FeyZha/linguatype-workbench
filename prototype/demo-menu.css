@@ -1,0 +1,41 @@
+.demo-menu-trigger {
+  position: fixed;
+  z-index: 21;
+  right: 18px;
+  bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--canvas);
+  color: var(--muted);
+  font: 11px/1.5 var(--sans, system-ui, sans-serif);
+  cursor: pointer;
+}
+.demo-menu-trigger:hover { color: var(--ink); background: var(--paper-hover); }
+.demo-menu-trigger:focus-visible, .demo-menu a:focus-visible { outline: 2px solid var(--muted); outline-offset: 3px; }
+.demo-menu {
+  position: fixed;
+  inset: auto 18px 54px auto;
+  width: 224px;
+  max-width: calc(100vw - 36px);
+  margin: 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--body);
+  box-shadow: 0 8px 28px rgba(20, 20, 19, .08);
+  font: 12px/1.6 var(--sans, system-ui, sans-serif);
+}
+.demo-menu p { margin: 0 0 10px; color: var(--muted); font-size: 11px; }
+.demo-menu nav { display: grid; gap: 2px; }
+.demo-menu a { display: flex; justify-content: space-between; padding: 8px 6px; border-radius: 4px; color: inherit; text-decoration: none; }
+.demo-menu a:hover { background: var(--paper-hover); }
+.demo-menu a span { color: var(--faint); }
+@media (max-width: 1099px) {
+  .demo-menu-trigger { bottom: 76px; right: 10px; }
+  .demo-menu { bottom: 114px; right: 10px; }
+}
