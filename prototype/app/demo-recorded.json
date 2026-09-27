@@ -1,0 +1,115 @@
+{
+  "feedback": {
+    "createdAt": "2026-09-27T14:50:34.158Z",
+    "documentId": "demo-digital-services",
+    "error": null,
+    "essayHash": "d877ce99734e94909858ae38dcef8ed33f7b77a4640be92f49a43cb0538569c1",
+    "essaySnapshot": "Online public services can reduce queues, lower administrative costs and allow citizens to complete routine tasks at any time. Digital records can also help different agencies coordinate a case more quickly. However, making websites and applications the main route to healthcare, housing or financial support can deepen the 数字鸿沟. The central challenge is to gain efficiency without excluding the people who need public help most.\n\nAccess is unequal for several reasons. Some older adults have limited confidence with unfamiliar interfaces, while low-income households may share one device or rely on unstable internet connections. 当申请流程只在线上进行时，缺乏数字技能、辅助设备或稳定网络的人可能被排除在基本公共服务之外. Poorly designed identity checks can create further barriers for people with disabilities or unusual personal circumstances. A single technical error may then delay rent support, medical appointments or other urgent assistance.\n\nGovernments should respond by making digital services simple, accessible and easy to pause and resume. Instructions should use plain language, and staff should be able to view the same case across different channels. Even when online systems work well, agencies should 保留面对面和电话渠道 for citizens who need personal assistance. Libraries and community centres can also provide secure devices and practical guidance. Regular testing with disabled and older users would reveal problems before a service is launched nationally.\n\nIn conclusion, digital delivery is valuable, but convenience for the majority must not become exclusion for a vulnerable minority. A fair system offers several routes to the same service and allows people to move between them without starting again. Governments should measure success by whether citizens complete their tasks, not simply by how many forms have moved online.",
+    "id": "b765456d-d8c6-473d-84d8-6a910df2cb0d",
+    "model": "deepseek-v4-flash",
+    "promptVersion": "essay-feedback-v7-ielts-task-requirements",
+    "status": "ready",
+    "suggestions": [
+      {
+        "criterion": "lexical_resource",
+        "directionZh": "将该概念用英文表述，或先用英文说明其含义再使用。",
+        "problemZh": "数字鸿沟一词直接以中文形式嵌入英文句子，与全文英文表达不一致，读者可能无法理解其含义。",
+        "sourceQuote": "However, making websites and applications the main route to healthcare, housing or financial support can deepen the 数字鸿沟.",
+        "type": "language"
+      },
+      {
+        "criterion": "lexical_resource",
+        "directionZh": "把这一部分改为英文表达，与前后句保持同一语言。",
+        "problemZh": "保留面对面和电话渠道以中文形式出现，破坏了句子的英文连贯性。",
+        "sourceQuote": "Even when online systems work well, agencies should 保留面对面和电话渠道 for citizens who need personal assistance.",
+        "type": "language"
+      },
+      {
+        "criterion": "lexical_resource",
+        "directionZh": "将该句用英文重新表述，使其与上下文语言统一。",
+        "problemZh": "整句为中文，与全文英文写作不一致，影响读者对论证的理解。",
+        "sourceQuote": "当申请流程只在线上进行时，缺乏数字技能、辅助设备或稳定网络的人可能被排除在基本公共服务之外.",
+        "type": "language"
+      }
+    ],
+    "summary": "文章完整回应了问题与措施两方面，立场清晰、论证有具体解释，衔接自然，语言基本准确，仅个别表达略显生硬。"
+  },
+  "completion": {
+    "argumentDecision": {
+      "action": "new"
+    },
+    "assetPackId": "demo-pack-digital-services",
+    "assetRevision": 2,
+    "candidate": {
+      "exampleIdea": null,
+      "languageExpressions": [
+        {
+          "expression": "deepen the digital divide",
+          "meaningZh": "加深数字鸿沟",
+          "pattern": "deepen the digital divide",
+          "sourceForm": "deepen the digital divide",
+          "sourceQuote": "However, making websites and applications the main route to healthcare, housing or financial support can deepen the digital divide.",
+          "usageScope": "讨论技术普及带来的不平等加剧"
+        },
+        {
+          "expression": "gain efficiency without excluding sb",
+          "meaningZh": "在提高效率的同时不排除某人",
+          "pattern": "gain efficiency without excluding sb",
+          "sourceForm": "gain efficiency without excluding the people who need public help most",
+          "sourceQuote": "The central challenge is to gain efficiency without excluding the people who need public help most.",
+          "usageScope": "讨论效率与包容性的平衡"
+        },
+        {
+          "expression": "be excluded from sth",
+          "meaningZh": "被排除在某事物之外",
+          "pattern": "be excluded from sth",
+          "sourceForm": "may be excluded from essential public services",
+          "sourceQuote": "When applications are available only online, people without digital skills, assistive equipment or reliable internet may be excluded from essential public services.",
+          "usageScope": "描述某群体无法获得服务或机会"
+        },
+        {
+          "expression": "convenience for the majority must not become exclusion for a vulnerable minority",
+          "meaningZh": "多数人的便利不能变成弱势少数群体的排斥",
+          "pattern": "convenience for A must not become exclusion for B",
+          "sourceForm": "convenience for the majority must not become exclusion for a vulnerable minority",
+          "sourceQuote": "In conclusion, digital delivery is valuable, but convenience for the majority must not become exclusion for a vulnerable minority.",
+          "usageScope": "强调便利措施不应牺牲弱势群体"
+        }
+      ],
+      "reasons": [],
+      "schemaVersion": 3,
+      "thought": {
+        "limits": [
+          "替代渠道的成本需在可接受范围内，原文未讨论成本不可行时如何取舍"
+        ],
+        "rationale": "新渠道虽能降低成本、加快协调，但进入门槛会把缺乏相应条件的人挡在基本服务之外，而一次技术故障就可能延误紧急援助，因此替代渠道和渠道间的顺畅切换是必要的兜底。",
+        "sourceQuotes": [
+          "However, making websites and applications the main route to healthcare, housing or financial support can deepen the digital divide.",
+          "The central challenge is to gain efficiency without excluding the people who need public help most.",
+          "When applications are available only online, people without digital skills, assistive equipment or reliable internet may be excluded from essential public services.",
+          "A fair system offers several routes to the same service and allows people to move between them without starting again."
+        ],
+        "thought": "不能只比较整体效率，还要检查新渠道是否系统性排除最需要该服务的人；应保留可负担的替代入口，并让各渠道之间可以衔接而不必从头再来。",
+        "useWhen": "当效率更高的新方案被推广为主要甚至唯一渠道，而部分群体因自身条件难以进入时"
+      },
+      "topicTags": [],
+      "viewpoint": null
+    },
+    "confirmedAt": "2026-09-27T14:51:20.216Z",
+    "documentId": "demo-digital-services",
+    "error": null,
+    "essayHash": "a5c5a184a1d59c489c7a9967b02af7df9ad64a8cbd7f1b8f18fd287fc58c0666",
+    "id": "b84650cb-2319-4d4b-a122-6798d9fe76ec",
+    "meta": {
+      "model": "deepseek-v4-flash",
+      "promptVersion": "thought-asset-extraction-v5-bounded-supported-judgment"
+    },
+    "requestId": "9ab41c89-76f2-49e7-b449-e6ab421b8c28",
+    "saveReason": "",
+    "snapshot": "Online public services can reduce queues, lower administrative costs and allow citizens to complete routine tasks at any time. Digital records can also help different agencies coordinate a case more quickly. However, making websites and applications the main route to healthcare, housing or financial support can deepen the digital divide. The central challenge is to gain efficiency without excluding the people who need public help most.\n\nAccess is unequal for several reasons. Some older adults have limited confidence with unfamiliar interfaces, while low-income households may share one device or rely on unstable internet connections. When applications are available only online, people without digital skills, assistive equipment or reliable internet may be excluded from essential public services. Poorly designed identity checks can create further barriers for people with disabilities or unusual personal circumstances. A single technical error may then delay rent support, medical appointments or other urgent assistance.\n\nGovernments should respond by making digital services simple, accessible and easy to pause and resume. Instructions should use plain language, and staff should be able to view the same case across different channels. Even when online systems work well, agencies should retain face-to-face and telephone channels for citizens who need personal assistance. Libraries and community centres can also provide secure devices and practical guidance. Regular testing with disabled and older users would reveal problems before a service is launched nationally.\n\nIn conclusion, digital delivery is valuable, but convenience for the majority must not become exclusion for a vulnerable minority. A fair system offers several routes to the same service and allows people to move between them without starting again. Governments should measure success by whether citizens complete their tasks, not simply by how many forms have moved online.",
+    "sourceTitle": "More public services are now provided main…",
+    "status": "saved",
+    "taskPrompt": "More public services are now provided mainly through websites and mobile applications. What problems can this create, and what measures could address them?",
+    "updatedAt": "2026-09-27T14:51:06.168Z"
+  }
+}
