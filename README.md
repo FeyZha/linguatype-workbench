@@ -1,5 +1,7 @@
 # LinguaType
 
+[在线体验](https://feyzha-linguatype.vercel.app) · [GitHub](https://github.com/FeyZha/linguatype-workbench)
+
 面向中文母语 IELTS 写作者的写作工作台：先完成表达，再整理和复用自己的思考。
 
 ## 功能
