@@ -7,7 +7,7 @@ import { isUsageReviews, type UsageReview } from './writing-usage.ts';
 import type { EssayDocument, SupportCard } from './workspace-state';
 import type { IntentCard } from './intent-help-state';
 import { isReferenceRecords, type ReferenceRecord } from './sentence-reference.ts';
-import type { LanguageCandidate } from './server/language-extraction';
+import type { LanguageCandidate } from './shared/language-extraction';
 
 export type CompletionCandidate = LanguageCandidate & { decision: 'pending' | 'saved' | 'ignored'; assetId?: string };
 export type WritingCompletion = {

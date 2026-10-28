@@ -4,7 +4,7 @@ import type {
   ScaffoldSuccessResponse,
 } from './scaffold-api-contract';
 
-export const SCAFFOLD_REQUEST_FAILED = '本句暂时无法处理，原文没有被修改。';
+export const SCAFFOLD_REQUEST_FAILED = '这句没有预置表达结果。请切回「表达帮助」使用原样例；当前正文没有被修改。';
 
 const PROMPT_VERSIONS = new Set(['expression-scaffold-v7-full-controlled-rules', 'expression-scaffold-v7-expression-memory-v1']);
 const SAFE_ERRORS: Record<ScaffoldErrorCode, string> = {

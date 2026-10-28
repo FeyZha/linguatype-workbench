@@ -1,6 +1,9 @@
 'use client';
 
-import { demoFetch } from './demo-api';
+import Image from '../demo/image';
+import { demoFetch } from '../demo/api';
+import { createPublicWorkspace, DEMO_STEPS } from '../demo/workspace';
+import { PublicDemoGuide } from '../demo/guide';
 import { CONFLICT_KEY, SESSION_EPOCH_KEY, profileEpoch } from './workspace-data';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { CreateEssayDialog } from './create-essay-dialog';
@@ -41,18 +44,14 @@ import {
   DEMO_RECALL_DOCUMENT_ID,
   createPrototypeResult,
 } from './prototype-cases';
-import { createDemoTopicAssets } from './demo-topic-assets';
-import { createDemoArgumentAssetState } from './demo-argument-assets';
-import { createSimulatedLearnerWorkspace } from './demo-simulated-learner';
-import { isDemoMode, isLearnerDemoMode, isRecallDemoMode, isLearnerThemesDemoMode } from './workspace-mode';
-import { createRecallDemoWorkspace, RECALL_DEMO_CASES } from './demo-recall';
-import { createLearnerThemesWorkspace, LEARNER_THEMES, LEARNER_THEME_ESSAYS, LEARNER_THEME_CASES } from './demo-learner-themes';
+import { isDemoMode, isLearnerDemoMode, isRecallDemoMode, isLearnerThemesDemoMode, isFulltextDemoMode, isResearchDemoMode } from './workspace-mode';
 import { FEEDBACK_API_PATH, FEEDBACK_PROMPT_VERSION, readFeedbackResult, textHash, type FeedbackRun } from './essay-feedback';
 import { DEPOSIT_API_PATH, DEPOSIT_PROMPT_VERSION, isArgumentGraphAsset, isThoughtAssetCandidate, readTopicAssetCandidate, saveTopicAssetPack, topicAssetItemCount, topicLanguageExpressions, type TopicAssetCandidate, type TopicAssetPack } from './topic-assets';
 import { applyArgumentAssetDecision, argumentAssetSourceDocumentIds, attachAssetToPackExpressions, recordArgumentAssetUsage, removeArgumentAsset, type ArgumentAsset, type ArgumentAssetDecision, type ArgumentAssetUsage, type ThoughtAssetUpdate } from './argument-assets';
-import { ARGUMENT_ASSET_RECALL_API_PATH, readArgumentAssetRecallResult } from './argument-asset-recall';
+import { FULLTEXT_RECALL_API_PATH, confirmedEssayLibrary, readFulltextInput, readFulltextResult, fulltextErrorMessage } from './fulltext-recall';
+import { FulltextRecallDialog, type FulltextRecallSession } from './fulltext-recall-dialog';
 import { createCompletedVersion, type CompletedArticleVersion } from './article-completion';
-import { CompletionConfirmDialog, DepositDialog, EssayFeedbackPanel, MaterialsDialog, RecallDialog, type CompletionPreview, type RecallSession } from './topic-workflow-dialogs';
+import { CompletionConfirmDialog, DepositDialog, EssayFeedbackPanel, MaterialsDialog, type CompletionPreview } from './topic-workflow-dialogs';
 
 type ActivePanel = 'library' | 'support' | 'feedback' | null;
 
@@ -171,13 +170,15 @@ function ExpressionMemoryDialog({ memories, onStatus, onDelete, onClose }: { mem
 }
 
 export default function Home() {
-  const [documents, setDocuments] = useState<EssayDocument[]>(DEMO_DOCUMENTS);
+  const [documents, setDocuments] = useState<EssayDocument[]>([]);
   const [expressionMemories, setExpressionMemories] = useState<ExpressionMemory[]>([]);
   const [topicAssetPacks, setTopicAssetPacks] = useState<TopicAssetPack[]>([]);
   const [argumentAssets, setArgumentAssets] = useState<ArgumentAsset[]>([]);
   const [argumentAssetUsages, setArgumentAssetUsages] = useState<ArgumentAssetUsage[]>([]);
-  const [activeDocumentId, setActiveDocumentId] = useState(DEMO_RECALL_DOCUMENT_ID);
+  const [activeDocumentId, setActiveDocumentId] = useState('public-university');
   const [hydrated, setHydrated] = useState(false);
+  const [researchLoading, setResearchLoading] = useState(false);
+  const [researchError, setResearchError] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<'loading' | 'saved' | 'error'>('loading');
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
@@ -189,9 +190,10 @@ export default function Home() {
   const [materialPackId, setMaterialPackId] = useState<string | undefined>();
   const [materialRevision, setMaterialRevision] = useState<number | undefined>();
   const [materialsOpen, setMaterialsOpen] = useState(false);
-  const [recallSession, setRecallSession] = useState<RecallSession | null>(null);
+  const [recallSession, setRecallSession] = useState<FulltextRecallSession | null>(null);
   const recallRequestRef = useRef<AbortController | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [brandUnavailable, setBrandUnavailable] = useState(false);
   const [activePanel, setActivePanel] = useState<ActivePanel>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [essayScrollTop, setEssayScrollTop] = useState(0);
@@ -228,20 +230,16 @@ export default function Home() {
     activeDocuments.find((document) => document.documentId === activeDocumentId) ??
     activeDocuments[0] ??
     null;
-  const learnerThemesDemo = hydrated && isLearnerThemesDemoMode();
-  const learnerThemeCase = learnerThemesDemo ? LEARNER_THEME_CASES.find(item => item.documentId === activeDocumentId) : undefined;
-  const learnerSourceEssay = learnerThemesDemo ? LEARNER_THEME_ESSAYS.find(item => item.documentId === activeDocumentId) : undefined;
-  const learnerTheme = learnerThemeCase?.theme ?? learnerSourceEssay?.theme ?? LEARNER_THEMES[0].id;
-  const recallDemo = hydrated && isRecallDemoMode();
-  const recallDemoCase = recallDemo ? RECALL_DEMO_CASES.find(item => item.documentId === activeDocumentId) : undefined;
   const taskPrompt = activeDocument?.taskPrompt ?? '';
   const promptIsFixed = Boolean(activeDocument?.promptSource && taskPrompt.trim());
   const essay = activeDocument?.essay ?? '';
+  const confirmedEssays = confirmedEssayLibrary(documents, activeDocumentId);
+  const confirmedLibraryKey = JSON.stringify(confirmedEssays.map(e => [e.documentId,e.versionId,e.essayHash]));
   useLayoutEffect(() => () => {
     recallRequestRef.current?.abort();
     recallRequestRef.current = null;
     setRecallSession(null);
-  }, [activeDocumentId, taskPrompt, essay, argumentAssets]);
+  }, [activeDocumentId, taskPrompt, confirmedLibraryKey]);
   const supportCards = activeDocument?.supportCards ?? [];
   const archivedCards = activeDocument?.archivedCards ?? [];
   const activeCardId = activeDocument?.activeCardId ?? null;
@@ -249,7 +247,6 @@ export default function Home() {
   const latestFeedback = activeDocument?.feedbackRuns?.at(-1);
   const depositSession = documents.flatMap(document => document.completedVersions ?? []).find(version => version.id === completionId) ?? null;
   const latestCompletedVersion = activeDocument?.completedVersions?.at(-1);
-  const recallableAssets = argumentAssets.filter(asset => asset.status === 'active');
   const currentEssaySelection =
     essaySelection?.documentId === activeDocumentId ? essaySelection : null;
   const deleteTarget =
@@ -309,7 +306,9 @@ export default function Home() {
   }, [activeDocumentId]);
 
   useEffect(() => {
-    const hydrationTimer = window.setTimeout(() => {
+    const controller = new AbortController();
+    let cancelled = false;
+    const hydrationTimer = window.setTimeout(async () => {
       try {
         const stored = localStorage.getItem(WORKSPACE_KEY);
         const epoch = profileEpoch(stored);
@@ -341,29 +340,10 @@ export default function Home() {
             setDocuments([...workspace.documents, blank]); setActiveDocumentId(blank.documentId);
           }
         } else if (isDemoMode()) {
-          if (isRecallDemoMode() || isLearnerThemesDemoMode()) {
-            const demo = isLearnerThemesDemoMode() ? createLearnerThemesWorkspace() : createRecallDemoWorkspace();
-            setDocuments(demo.documents);
-            setActiveDocumentId(demo.activeDocumentId);
-            setTopicAssetPacks(demo.topicAssetPacks ?? []);
-            setArgumentAssets(demo.argumentAssets ?? []);
-            setArgumentAssetUsages([]);
-            setExpressionMemories([]);
-          } else if (isLearnerDemoMode()) {
-            const simulation = createSimulatedLearnerWorkspace();
-            setDocuments(simulation.documents);
-            setActiveDocumentId(simulation.documents.at(-1)!.documentId);
-            setExpressionMemories(simulation.expressionMemories);
-            setTopicAssetPacks([]);
-            setArgumentAssets(simulation.argumentAssets);
-            setArgumentAssetUsages(simulation.argumentAssetUsages);
-          } else {
-            const packs = createDemoTopicAssets();
-            const argumentState = createDemoArgumentAssetState(packs);
-            setTopicAssetPacks(packs);
-            setArgumentAssets(argumentState.assets);
-            setArgumentAssetUsages(argumentState.usages);
-          }
+          const demo = await createPublicWorkspace(new URLSearchParams(window.location.search).get('scene') === 'empty');
+          if (cancelled) return;
+          setDocuments(demo.documents); setActiveDocumentId(demo.activeDocumentId);
+          setTopicAssetPacks([]); setArgumentAssets([]); setArgumentAssetUsages([]); setExpressionMemories([]);
         } else {
           const blank = createEssayDocument(createId('document'), new Date().toISOString());
           setDocuments([blank]);
@@ -371,10 +351,15 @@ export default function Home() {
         }
         canPersistRef.current = !conflict;
         setSaveStatus(conflict ? 'error' : 'saved');
-      } catch { setSaveStatus('error'); }
-      finally { setHydrated(true); }
+      } catch {
+        if (!cancelled) {
+          setSaveStatus('error');
+          if (isResearchDemoMode()) setResearchError('没有装入本地研究作文，尚未写入或替换任何内容。请确认正式工作台已启动后重新加载。');
+        }
+      }
+      finally { if (!cancelled) { setResearchLoading(false); setHydrated(true); } }
     }, 0);
-    return () => window.clearTimeout(hydrationTimer);
+    return () => { cancelled = true; controller.abort(); window.clearTimeout(hydrationTimer); };
   }, []);
 
   const noticeProfileReplacement = useCallback(() => {
@@ -986,7 +971,7 @@ export default function Home() {
       const result = readFeedbackResult(value, essaySnapshot);
       updateDocument(documentId, document => ({ ...document, feedbackRuns: document.feedbackRuns?.map(run => run.id === id && run.status === 'loading' ? { ...run, status: 'ready' as const, summary: result.summary, suggestions: result.suggestions, model: result.meta.model, promptVersion: result.meta.promptVersion } : run), updatedAt: new Date().toISOString() }));
     } catch {
-      updateDocument(documentId, document => ({ ...document, feedbackRuns: document.feedbackRuns?.map(run => run.id === id && run.status === 'loading' ? { ...run, status: 'error' as const, error: '暂时无法生成修改建议，正文没有被修改。' } : run), updatedAt: new Date().toISOString() }));
+      updateDocument(documentId, document => ({ ...document, feedbackRuns: document.feedbackRuns?.map(run => run.id === id && run.status === 'loading' ? { ...run, status: 'error' as const, error: '这份输入没有预置审阅结果。可切回「审阅与保存」体验原样例；当前正文没有被修改。' } : run), updatedAt: new Date().toISOString() }));
     }
   }
 
@@ -1052,11 +1037,9 @@ export default function Home() {
   function startDeposit() {
     if (!activeDocument || !taskPrompt.trim() || !essay.trim()) { showToast('请先填写题目和正文。'); return; }
     setCompletionError(null);
-    const existingPack = topicAssetPacks.find(pack => pack.sourceDocumentId === activeDocument.documentId && pack.sourceEssaySnapshot === essay);
-    if (existingPack) { setMaterialPackId(existingPack.id); setMaterialRevision(undefined); setMaterialsOpen(true); return; }
-    const existingVersion = activeDocument.completedVersions?.findLast(version => version.snapshot === essay && version.taskPrompt === taskPrompt && (version.status !== 'saved' || topicAssetPacks.some(pack => pack.id === version.assetPackId)));
-    if (existingVersion) {
-      setCompletionId(existingVersion.id);
+    const existingVersion = activeDocument.completedVersions?.at(-1);
+    if (existingVersion?.snapshot === essay && existingVersion.taskPrompt === taskPrompt) {
+      showToast('这版全文已确认保存，可以用于以后复用。');
       return;
     }
     setCompletionPreview(previewOf(activeDocument));
@@ -1064,9 +1047,9 @@ export default function Home() {
 
   async function confirmCompletedVersion(saveReason: string) {
     if (!completionPreview) return;
-    let completed: CompletedArticleVersion | null = null;
     await completionAction(async () => {
       const version = await createCompletedVersion(completionPreview, createId('completion'), new Date().toISOString(), saveReason);
+      version.status = 'confirmed';
       await persistWorkspace(workspace => {
         const current = workspace.documents.find(document => document.documentId === version.documentId);
         if (current?.status !== 'active') throw new Error('来源文章已不可用，请返回文章核对。');
@@ -1077,11 +1060,10 @@ export default function Home() {
         if ((current.completedVersions?.length ?? 0) >= 1000) throw new Error('这篇文章保留的版本已达上限，已有文章和素材仍保留。');
         return { ...workspace, documents: workspace.documents.map(document => document !== current ? document : { ...document, completedVersions: [...document.completedVersions ?? [], version] }) };
       });
-      completed = version;
       setCompletionPreview(null);
-      setCompletionId(version.id);
+      setCompletionId(null);
+      showToast('已保留这版全文，之后可从中寻找复用线索。');
     });
-    if (completed) void requestDeposit(completed);
   }
 
   function editDeposit(candidate: TopicAssetCandidate) {
@@ -1155,22 +1137,22 @@ export default function Home() {
   async function findRelatedMaterials() {
     if (recallRequestRef.current) return;
     if (!taskPrompt.trim()) { showToast('请先填写当前题目。'); return; }
-    const eligible = recallableAssets.filter(asset => asset.kind === 'thought' && !asset.sources.some(source => source.documentId === activeDocumentId));
-    setRecallSession({ status: 'loading', matches: [], error: null });
-    if (!eligible.length) { setRecallSession({ status: 'ready', matches: [], error: null }); return; }
+    const essays = confirmedEssays;
+    setRecallSession({ status: 'loading', paths: [], essays, error: null });
+    if (!essays.length) { setRecallSession({ status: 'ready', paths: [], essays, error: null }); return; }
     const request = new AbortController();
     recallRequestRef.current = request;
     try {
-      const response = await demoFetch(ARGUMENT_ASSET_RECALL_API_PATH, { method: 'POST', signal: request.signal, headers: { 'content-type': 'application/json' }, body: JSON.stringify({ taskPrompt, currentDraft: essay, assets: eligible }) });
+      const input = readFulltextInput({ version: 4, currentDocumentId: activeDocumentId, taskPrompt, essays });
+      const response = await demoFetch(FULLTEXT_RECALL_API_PATH, { method: 'POST', signal: AbortSignal.any([request.signal, AbortSignal.timeout(620000)]), headers: { 'content-type': 'application/json' }, body: JSON.stringify(input) });
       const value: unknown = await response.json();
       if (recallRequestRef.current !== request) return;
-      if (!response.ok) throw new Error('REQUEST_FAILED');
-      const result = readArgumentAssetRecallResult(value, eligible);
-      setRecallSession({ status: 'ready', matches: result.matches, error: null });
+      if (!response.ok) throw new Error((value as {error?:string})?.error ?? 'RECALL_UNAVAILABLE');
+      const result = readFulltextResult(value, input);
+      setRecallSession({ status: 'ready', paths: result.paths, essays, error: null });
     } catch (error) {
       if (recallRequestRef.current !== request) return;
-      console.error('argument-asset-recall failed', error instanceof Error ? error.stack : 'UNKNOWN');
-      setRecallSession({ status: 'error', matches: [], error: '这次没有成功完成召回，可以稍后再试。正文和素材库没有变化。' });
+      setRecallSession({ status: 'error', paths: [], essays, error: fulltextErrorMessage(error instanceof Error ? error.message : 'RECALL_UNAVAILABLE') });
     } finally {
       if (recallRequestRef.current === request) recallRequestRef.current = null;
     }
@@ -1314,6 +1296,7 @@ export default function Home() {
         data-active-panel={activePanel ?? 'none'}
         data-sidebar-collapsed={sidebarCollapsed ? 'true' : 'false'}
       >
+        {hydrated ? <PublicDemoGuide documents={documents} activeId={activeDocumentId} onSelect={id => { setActiveDocumentId(id); showWriting(); }} /> : null}
         {activePanel ? (
           <button
             className="panel-backdrop"
@@ -1335,14 +1318,16 @@ export default function Home() {
           >
             <div className="sidebar-brand">
               <div className="sidebar-brand-lockup" role="img" aria-label="LinguaType">
-                <img
+                {brandUnavailable ? <span className="sidebar-brand-text">LinguaType</span> : <Image
                   className="sidebar-wordmark"
                   src="/brand/linguatype-wordmark-light.png"
                   alt=""
                   width={624}
                   height={136}
+                  priority
                   unoptimized
-                />
+                  onError={() => setBrandUnavailable(true)}
+                />}
               </div>
               <button
                 className="sidebar-toggle desktop-sidebar-toggle"
@@ -1352,14 +1337,16 @@ export default function Home() {
                 aria-label={sidebarCollapsed ? '展开写作存档' : '收起写作存档'}
                 title={sidebarCollapsed ? '展开写作存档' : '收起写作存档'}
               >
-                <img
+                {!brandUnavailable ? <Image
                   className="sidebar-toggle-mark"
                   src="/brand/linguatype-mark-light.png"
                   alt=""
                   width={132}
                   height={113}
+                  priority
                   unoptimized
-                />
+                  onError={() => setBrandUnavailable(true)}
+                /> : null}
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <path
                     d="m14.5 6-6 6 6 6"
@@ -1394,7 +1381,8 @@ export default function Home() {
             <div className="pane-heading">
               <div>
                 <h2>作文库</h2>
-                <p className="pane-caption">{learnerThemesDemo ? '合成考生 · 25 篇原文 / 15 道测试' : recallDemo ? '召回体验 · 合成样例' : hydrated && isLearnerDemoMode() ? '合成模拟用户 · 10 篇练习' : '继续哪一篇？'}</p>
+                <p className="pane-caption">预置作文与本次练习</p>
+
               </div>
             </div>
 
@@ -1410,14 +1398,15 @@ export default function Home() {
                   }}
                   aria-current={document.documentId === activeDocumentId ? 'true' : undefined}
                 >
-                  <span>{learnerThemesDemo ? LEARNER_THEME_CASES.find(item => item.documentId === document.documentId)?.label ?? LEARNER_THEME_ESSAYS.find(item => item.documentId === document.documentId)?.titleZh ?? '新作文' : recallDemo ? RECALL_DEMO_CASES.find(item => item.documentId === document.documentId)?.label ?? '旧积累来源' : `作文 ${index + 1}`}</span>
-                  <strong>{documentTitle(document)}</strong>
+                  <span>{document.documentId === 'public-source' ? '预置已确认旧文' : `作文 ${index + 1}`}</span>
+                  <strong>{DEMO_STEPS.find(step => step.id === document.documentId)?.title ?? (document.documentId === 'public-source' ? '已确认旧文 · 公共服务数字化' : documentTitle(document))}</strong>
                   <small>
                     {formatDocumentDate(document.updatedAt)} · 已处理 {document.supportCards.length} 句
                   </small>
                 </button>
               ))}
             </div>
+
 
             <div className="library-actions">
               <button
@@ -1499,31 +1488,6 @@ export default function Home() {
                 <button className="btn btn-secondary" type="button" onClick={() => setMaterialsOpen(true)}>我的素材{argumentAssets.length ? `（${argumentAssets.length}）` : ''}</button>
                 <button className="btn btn-secondary quiet-action" type="button" onClick={() => setExpressionMemoryOpen(true)}>表达记忆{expressionMemories.length ? `（${expressionMemories.length}）` : ''}</button>
               </div>
-              {learnerThemesDemo ? <aside className="recall-demo-guide" aria-label="多主题召回体验说明">
-                <strong>25 篇作文之后，哪些积累会被想起？</strong>
-                <p>独立模拟体验 · 5.5–6.5 为考生角色设定，未经实际评分。五个主题各 5 篇；文章与保存决定由角色模拟，素材由当前模型真实提炼。</p>
-                <button className="text-button" type="button" onClick={() => setMaterialsOpen(true)}>看已保存的 {argumentAssets.filter(asset => asset.kind === 'thought' && asset.status === 'active').length} 条积累与出处</button>
-                <nav aria-label="模拟作文主题">{LEARNER_THEMES.map(theme => <button className="btn btn-ghost" key={theme.id} type="button" aria-current={learnerTheme === theme.id ? 'true' : undefined} onClick={() => { setActiveDocumentId(LEARNER_THEME_CASES.find(item => item.theme === theme.id)!.documentId); showWriting(); }}>{theme.titleZh}</button>)}</nav>
-                <nav aria-label="多主题召回案例">{LEARNER_THEME_CASES.filter(item => item.theme === learnerTheme).map(item => <button className="btn btn-ghost" key={item.documentId} type="button" aria-current={activeDocumentId === item.documentId ? 'true' : undefined} onClick={() => { setActiveDocumentId(item.documentId); showWriting(); }}>{item.label}</button>)}</nav>
-                {learnerThemeCase ? <>
-                  <p><b>{learnerThemeCase.title}</b> · 点击积累召回，观察想起了什么。每次使用整份已保存素材库，真实调用当前模型；边界情况也可能值得提醒。</p>
-                  <details key={learnerThemeCase.documentId}><summary>体验后再看预期与判断标准</summary><p>{learnerThemeCase.explanation}</p><p>预期基于初始的 7 条积累与空正文；自行修改后结果可能改变。查看提醒不计为使用。</p></details>
-                </> : learnerSourceEssay ? <p><b>{learnerSourceEssay.titleZh}</b> · {learnerSourceEssay.wordCount} 词的模拟完成稿。角色决定：{learnerSourceEssay.decisionReasonZh} {latestCompletedVersion?.status === 'error' ? '本篇提炼失败，可点击定稿沉淀查看并手动重试。' : ''}</p> : <p>这是你在独立体验区新建的文章，上方可切回测试题。</p>}
-                <details key={learnerTheme}><summary>阅读本主题的 5 篇模拟原文</summary><nav aria-label="本主题模拟原文">{LEARNER_THEME_ESSAYS.filter(item => item.theme === learnerTheme).map(item => <button className="btn btn-ghost" key={item.documentId} type="button" aria-current={activeDocumentId === item.documentId ? 'true' : undefined} onClick={() => { setActiveDocumentId(item.documentId); showWriting(); }}>{item.titleZh}</button>)}</nav></details>
-                <details><summary>这份积累是怎样留下来的？</summary><p>25 篇逐一真实提炼：11 篇成功、14 篇首轮失败。角色从成功候选中保存 7 条思考，主动跳过 4 条；没有为失败文章补造素材。失败记录与全部原文都保留在此体验区。</p><p>所有内容均为合成模拟，不写入个人素材；这些结果不能说明真实学习效果。</p></details>
-                <button className="text-button" type="button" onClick={() => window.location.assign('/')}>返回原来的写作区</button>
-              </aside> : null}
-              {recallDemo ? <aside className="recall-demo-guide" aria-label="召回体验说明">
-                <strong>同一份旧积累，试三种新题目</strong>
-                <p>独立体验区 · 使用合成样例，不写入个人素材。这三条预置测试真实调用当前模型，结果可能与预期不同。</p>
-                <button className="text-button" type="button" onClick={() => setMaterialsOpen(true)}>先看这 1 条旧积累与来源</button>
-                <nav aria-label="召回测试案例">{RECALL_DEMO_CASES.map(item => <button className="btn btn-ghost" key={item.documentId} type="button" aria-current={activeDocumentId === item.documentId ? 'true' : undefined} onClick={() => { setActiveDocumentId(item.documentId); showWriting(); }}>{item.label}</button>)}</nav>
-                {recallDemoCase ? <>
-                  <p><b>{recallDemoCase.title}</b> · 点击右侧的积累召回，观察出现旧内容还是空结果。窄屏入口在正文下方。</p>
-                  <details key={recallDemoCase.documentId}><summary>看本例的预期与判断标准</summary><p>{recallDemoCase.explanation}</p><p>这份预期基于预置题目、空正文和原始的 1 条积累。编辑正文或素材后，结果可能改变；查看提醒不计为使用。</p></details>
-                </> : <p>这里是旧积累的来源文章。上方三个按钮可以切回测试题。</p>}
-                <button className="text-button" type="button" onClick={() => window.location.assign('/')}>返回原来的写作区</button>
-              </aside> : null}
               <div className="field prompt-field">
                 <div className="field-row">
                   {promptIsFixed ? (
@@ -1556,7 +1520,7 @@ export default function Home() {
                 )}
               </div>
 
-              {activePanel === 'feedback' && latestFeedback?.status === 'ready' ? <section className="essay-overall-feedback" aria-label="AI 总体评语">
+              {activePanel === 'feedback' && latestFeedback?.status === 'ready' ? <section className="essay-overall-feedback" aria-label="预置审阅概览">
                 <div><strong>总体评语</strong>{latestFeedback.essaySnapshot !== essay ? <small>对应上一版正文</small> : null}</div>
                 <p>{latestFeedback.summary}</p>
               </section> : null}
@@ -1670,9 +1634,9 @@ export default function Home() {
               </div>
 
               <footer className="essay-workflow-actions" aria-label="文章级操作">
-                <button className="btn btn-ghost" type="button" disabled={!hydrated || !taskPrompt.trim() || recallSession?.status === 'loading'} onClick={() => void findRelatedMaterials()}>积累召回</button>
+                <button className="btn btn-ghost" type="button" disabled={!hydrated || !taskPrompt.trim() || recallSession?.status === 'loading'} onClick={() => void findRelatedMaterials()}>从旧文找线索</button>
                 <button className="btn btn-ghost" type="button" disabled={!hydrated || !taskPrompt.trim() || !essay.trim()} onClick={() => latestFeedback?.essaySnapshot === essay ? showFeedback() : void runEssayFeedback()}>全文审阅</button>
-                <button className="btn btn-ghost" type="button" disabled={!hydrated || !taskPrompt.trim() || !essay.trim()} onClick={startDeposit}>定稿沉淀</button>
+                <button className="btn btn-ghost" type="button" disabled={!hydrated || !taskPrompt.trim() || !essay.trim()} onClick={startDeposit}>确认完成版本</button>
               </footer>
             </div>
           </section>
@@ -1929,10 +1893,10 @@ export default function Home() {
         onDelete={id => setExpressionMemories(current => current.filter(memory => memory.id !== id))}
         onClose={() => setExpressionMemoryOpen(false)}
       /> : null}
-      {completionPreview ? <CompletionConfirmDialog preview={completionPreview} onConfirm={reason => void confirmCompletedVersion(reason)} onClose={() => { setCompletionPreview(null); setCompletionError(null); }} busy={completionBusy} error={completionError} existingVersion={latestCompletedVersion} onResume={() => { if (!latestCompletedVersion) return; setCompletionPreview(null); setCompletionId(latestCompletedVersion.id); setCompletionError(null); }} /> : null}
+      {completionPreview ? <CompletionConfirmDialog preview={completionPreview} onConfirm={reason => void confirmCompletedVersion(reason)} onClose={() => { setCompletionPreview(null); setCompletionError(null); }} busy={completionBusy} error={completionError} existingVersion={latestCompletedVersion} /> : null}
       {depositSession ? <DepositDialog session={depositSession} assets={argumentAssets} suggestedAssetIds={documents.find(document => document.documentId === depositSession.documentId)?.argumentReuseDrafts?.map(draft => draft.assetId)} onDecision={decideDeposit} onChange={editDeposit} onSave={() => void confirmDeposit()} onRetry={() => void requestDeposit(depositSession)} onClose={() => void closeDeposit()} onUseCurrent={() => void closeDeposit(true)} onViewSaved={viewSavedMaterials} busy={completionBusy} error={completionError} changed={depositSession.snapshot !== essay || depositSession.taskPrompt !== taskPrompt} unsaved={saveStatus === 'error'} /> : null}
       {materialsOpen ? <MaterialsDialog assets={argumentAssets} usages={argumentAssetUsages} packs={topicAssetPacks} initialPackId={materialPackId} initialRevision={materialRevision} onEdit={updateArgumentAsset} onDeleteAsset={id => { if (!window.confirm('删除这条思维资产？来源作文和历史提炼记录仍会保留。')) return; deleteArgumentAsset(id); }} onDeleteLegacy={id => { if (!window.confirm('删除这篇历史素材？来源作文不会被删除。')) return; setTopicAssetPacks(current => current.filter(pack => pack.id !== id)); }} onOpenSource={openSourceDocument} onClose={() => { setMaterialsOpen(false); setMaterialPackId(undefined); setMaterialRevision(undefined); }} /> : null}
-      {recallSession ? <RecallDialog session={recallSession} assets={argumentAssets} onOpenSource={id => { closeRecall(); openSourceDocument(id); }} onRetry={() => void findRelatedMaterials()} onClose={closeRecall} /> : null}
+      {recallSession ? <FulltextRecallDialog session={recallSession} onRetry={() => void findRelatedMaterials()} onClose={closeRecall} /> : null}
       {toast ? <div className="toast" role="status" aria-live="polite">{toast}</div> : null}
     </>
   );

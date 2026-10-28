@@ -1,7 +1,8 @@
 {
-  "name": "linguatype-prototype",
-  "version": "0.1.0",
+  "name": "linguatype-public-demo",
+  "version": "1.0.0",
   "private": true,
+  "type": "module",
   "engines": {
     "node": ">=22.13.0"
   },
@@ -10,7 +11,8 @@
     "dev:demo": "vite --config vite.demo.config.ts --host 127.0.0.1",
     "build": "vite build --config vite.demo.config.ts",
     "build:demo": "vite build --config vite.demo.config.ts",
-    "test:demo": "node --experimental-strip-types tests/demo-api.test.mjs"
+    "test:demo": "node --experimental-strip-types --test tests/public-demo.test.mjs",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "react": "19.2.6",
@@ -24,7 +26,6 @@
     "typescript": "5.9.3",
     "vite": "8.0.13"
   },
-  "type": "module",
   "scarfSettings": {
     "enabled": false
   }

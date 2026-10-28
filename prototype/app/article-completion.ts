@@ -11,7 +11,7 @@ export type CompletedArticleVersion = {
   essayHash: string;
   confirmedAt: string;
   saveReason: string;
-  status: 'pending' | 'loading' | 'ready' | 'error' | 'saved' | 'empty';
+  status: 'confirmed' | 'pending' | 'loading' | 'ready' | 'error' | 'saved' | 'empty';
   requestId: string | null;
   candidate: TopicAssetCandidate | null;
   meta: { model: string; promptVersion: string } | null;
@@ -38,7 +38,7 @@ export function isCompletedVersions(value: unknown): value is CompletedArticleVe
   if (!Array.isArray(value) || value.length > 1000) return false;
   const ids = new Set<string>();
   return value.every((record: CompletedArticleVersion) => {
-    if (!record || typeof record !== 'object' || !text(record.id, 200) || ids.has(record.id) || !text(record.documentId, 200) || !text(record.sourceTitle, 4000) || !text(record.taskPrompt, 4000) || !text(record.snapshot, 20000) || typeof record.essayHash !== 'string' || !/^[a-f0-9]{64}$/.test(record.essayHash) || !date(record.confirmedAt) || !text(record.saveReason, 300, false) || !['pending', 'loading', 'ready', 'error', 'saved', 'empty'].includes(record.status) || !(record.requestId === null || text(record.requestId, 200)) || !(record.error === null || text(record.error, 5000))) return false;
+    if (!record || typeof record !== 'object' || !text(record.id, 200) || ids.has(record.id) || !text(record.documentId, 200) || !text(record.sourceTitle, 4000) || !text(record.taskPrompt, 4000) || !text(record.snapshot, 20000) || typeof record.essayHash !== 'string' || !/^[a-f0-9]{64}$/.test(record.essayHash) || !date(record.confirmedAt) || !text(record.saveReason, 300, false) || !['confirmed', 'pending', 'loading', 'ready', 'error', 'saved', 'empty'].includes(record.status) || !(record.requestId === null || text(record.requestId, 200)) || !(record.error === null || text(record.error, 5000))) return false;
     if (!(record.meta === null || record.meta && text(record.meta.model, 200) && text(record.meta.promptVersion, 200))) return false;
     if (record.assetPackId !== undefined || record.assetRevision !== undefined) {
       if (!text(record.assetPackId, 200) || !Number.isSafeInteger(record.assetRevision) || record.assetRevision! < 1) return false;

@@ -1,5 +1,5 @@
 // Verified usage/relevance evidence in, deterministic attribution out; no model calls.
-import type { ReuseResult } from './server/language-reuse.ts';
+import type { ReuseResult } from './shared/language-reuse.ts';
 export type Assistance = 'unprompted_observed' | 'chinese' | 'english' | 'full_reference' | 'unknown';
 export type UsageEvidence = { evidenceId: string; order: number | null; quote: string; verdict: ReuseResult['verdict'] };
 export type HelpEvidence = { eventId: string; order: number | null; kind: 'exposure' | 'paste' | 'external'; displayed: boolean; relation: 'yes' | 'no' | 'unknown'; level: 'chinese' | 'english' | 'full_reference'; content: string };

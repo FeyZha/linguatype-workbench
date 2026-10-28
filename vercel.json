@@ -1,6 +1,25 @@
 {
+  "installCommand": "cd prototype && npm ci",
+  "buildCommand": "cd prototype && npm run build:demo",
+  "outputDirectory": "prototype/demo-dist",
   "framework": null,
-  "installCommand": "npm --prefix prototype ci",
-  "buildCommand": "npm --prefix prototype run build:demo",
-  "outputDirectory": "prototype/demo-dist"
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "no-referrer"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        }
+      ]
+    }
+  ]
 }

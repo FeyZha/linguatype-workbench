@@ -1,6 +1,6 @@
 import { validAnalysisFailure, type AnalysisFailure } from './analysis-record.ts';
-import { readReuseInput, readReuseResult, type ReuseResult } from './server/language-reuse.ts';
-import { readHelpRelations, type HelpRelationInput } from './server/help-relevance.ts';
+import { readReuseInput, readReuseResult, type ReuseResult } from './shared/language-reuse.ts';
+import { readHelpRelations, type HelpRelationInput } from './shared/help-relevance.ts';
 import { attributeUsage, readAttributionInput, type AttributionInput, type UsageEvidence, type HelpEvidence, type ReuseObservation } from './usage-attribution.ts';
 import type { WritingCompletion } from './writing-completion';
 import type { TraceAsset } from './writing-trace';

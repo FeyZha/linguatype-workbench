@@ -115,7 +115,7 @@ export function CompletionConfirmDialog({ preview, onConfirm, onClose, busy, err
   if (confirmation.previewKey !== previewKey) setConfirmation({ previewKey, checked: false });
   const confirmed = confirmation.previewKey === previewKey && confirmation.checked;
   const differentVersion = existingVersion && (existingVersion.snapshot !== preview.snapshot || existingVersion.taskPrompt !== preview.taskPrompt);
-  return <DialogFrame title="确认完成版本" subtitle="请回看这版全文。确认后将保留这一版，后续修改不会改动它。" onClose={onClose} busy={busy}>
+  return <DialogFrame title="确认完成版本" subtitle="请回看这版全文。确认后会用于以后主动查找复用线索，后续修改不会改动这个版本。" onClose={onClose} busy={busy}>
     <div className="dialog-body workflow-dialog-body">
       <section className="completion-version" aria-label="待确认的文章版本">
         <p className="completion-prompt">{preview.taskPrompt}</p>
@@ -127,7 +127,7 @@ export function CompletionConfirmDialog({ preview, onConfirm, onClose, busy, err
       <label className="completion-check"><input type="checkbox" checked={confirmed} disabled={busy} onChange={event => setConfirmation({ previewKey, checked: event.target.checked })} /><span>我已亲自检查、修改，并认可这版文章表达了我的意思。</span></label>
       <label className="completion-reason">这版有什么值得以后再用？（选填）<textarea value={saveReason} maxLength={300} rows={3} disabled={busy} onChange={event => setSaveReason(event.target.value)} placeholder="例如：我想留下“交通便利如何减少开车”的这段理由。" /><span>{saveReason.length}/300 · 留空也可以继续。</span></label>
       {error ? <p className="workflow-notice" role="alert">{error}</p> : null}
-      <div className="workflow-actions"><button className="btn btn-secondary" type="button" disabled={busy} onClick={onClose}>返回继续修改</button><button className="btn btn-primary" type="button" disabled={busy || !confirmed} onClick={() => onConfirm(saveReason.trim())}>{busy ? '正在保留完成版本…' : '确认这版，开始整理'}</button></div>
+      <div className="workflow-actions"><button className="btn btn-secondary" type="button" disabled={busy} onClick={onClose}>返回继续修改</button><button className="btn btn-primary" type="button" disabled={busy || !confirmed} onClick={() => onConfirm(saveReason.trim())}>{busy ? '正在保留完成版本…' : '确认并保存全文'}</button></div>
     </div>
   </DialogFrame>;
 }

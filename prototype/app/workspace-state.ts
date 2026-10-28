@@ -90,6 +90,7 @@ export type PromptSource =
   | { kind: 'custom' };
 
 export type EssayDocument = {
+  researchSource?: { kind: 'third_party_research'; essayId: string; sourceId: string; sourceQuestionId: string; title: string };
   completedVersions?: CompletedArticleVersion[];
   argumentReuseDrafts?: ArgumentAssetReuseDraft[];
   feedbackRuns?: FeedbackRun[];
@@ -170,6 +171,7 @@ export function isPersistedWorkspace(value: unknown): value is PersistedWorkspac
     (workspace.favoriteExpressions === undefined || isExpressionFavorites(workspace.favoriteExpressions)) &&
     (workspace.expressionMemories === undefined || isExpressionMemories(workspace.expressionMemories)) &&
     Array.isArray(workspace.documents) &&
+    workspace.documents.every(document => !document?.researchSource || document.researchSource.kind === 'third_party_research' && /^E\d{3}$/.test(document.researchSource.essayId) && [document.researchSource.sourceId, document.researchSource.sourceQuestionId, document.researchSource.title].every(value => typeof value === 'string' && value.length > 0 && value.length <= 4000)) &&
     workspace.documents.every(document => document && (document.completedVersions === undefined || isCompletedVersions(document.completedVersions) && document.completedVersions.every(version => version.documentId === document.documentId))) &&
     workspace.documents.every(document => document && (document.argumentReuseDrafts === undefined || isArgumentReuseDrafts(document.argumentReuseDrafts))) &&
     workspace.documents.every(document => document && (document.feedbackRuns === undefined || isFeedbackRuns(document.feedbackRuns) && document.feedbackRuns.every(run => run.documentId === document.documentId)) && (document.prewritingRequestedAt === undefined || typeof document.prewritingRequestedAt === 'string' && Number.isFinite(Date.parse(document.prewritingRequestedAt))) && (document.references === undefined || isReferenceRecords(document.references)) && (document.intentDraft === undefined || isIntentDraft(document.intentDraft)) && (document.intentCards === undefined || isIntentCards(document.intentCards)) && (document.activeIntentId === undefined || document.activeIntentId === null || typeof document.activeIntentId === 'string' && !!document.intentCards?.some(c => c.cardId === document.activeIntentId)) && (document.writingTrace === undefined || isWritingTrace(document.writingTrace)) && (document.completions === undefined || isWritingCompletions(document.completions) && document.completions.every(c => c.usageReviews?.every(r => !r.evidence || r.evidence.documentId === document.documentId) ?? true)) && [...document.supportCards ?? [], ...document.intentCards ?? [], ...document.archivedCards ?? [], ...document.completions?.flatMap(c => c.helpCards) ?? []].every(card => { try { if ('intent' in card && !isIntentCards([card])) return false; if (card.helpPackage) { readHelpPackage(card.helpPackage); if (typeof card.requestToken !== 'string' || !card.requestToken) return false; } return card.helpExposures === undefined || validHelpExposures(card.helpExposures); } catch { return false; } })) &&

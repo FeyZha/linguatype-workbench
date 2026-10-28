@@ -1,14 +1,4 @@
 node_modules/
-dist/
-.next/
-.vercel/
+prototype/demo-dist/
 .env*
-!.env.example
-__pycache__/
-*.pyc
-runtime/
 *.log
-demo-dist/
-*.tsbuildinfo
-.wrangler/
-.vercel

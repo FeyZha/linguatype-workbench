@@ -1,6 +1,6 @@
 import { HELP_VERSION, INTENT_HELP_VERSION, readHelpPackage } from './help-package.ts';
-import type { MatchAsset, LanguageMatch } from './server/language-matching';
-import type { IntentInput } from './server/intent-entry';
+import type { MatchAsset, LanguageMatch } from './shared/language-matching';
+import type { IntentInput } from './shared/intent-entry';
 import { isIntentGenerationMeta, type IntentGenerationMeta } from './intent-help-state.ts';
 
 export type HelpRequest = { taskPrompt: string; fullEssay: string; targetSentence: string; assets: MatchAsset[] };

@@ -2,7 +2,7 @@ import { validQualityAttempt, type QualityAttempt } from './analysis-record.ts';
 import { isReasonAssets, type ReasonAsset } from './reason-chains.ts';
 import { isIdeaAssets, type IdeaAsset } from './idea-assets.ts';
 import type { EssayDocument } from './workspace-state';
-import type { QualityInput } from './server/asset-quality';
+import type { QualityInput } from './shared/asset-quality';
 
 export type LanguageAsset = {
   assetId: string;

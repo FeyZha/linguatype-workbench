@@ -1,4 +1,4 @@
-import { readMatchAssets, type MatchAsset } from './server/language-matching.ts';
+import { readMatchAssets, type MatchAsset } from './shared/language-matching.ts';
 
 export type RecallInput = { taskPrompt: string; assets: MatchAsset[] };
 export type RecallSelection = { assetId: string; revision: number };

@@ -1,5 +1,5 @@
 import { validAnalysisFailure, type AnalysisFailure } from './analysis-record.ts';
-import { readHelpRelations } from './server/help-relevance.ts';
+import { readHelpRelations } from './shared/help-relevance.ts';
 import type { WritingEvent } from './writing-trace.ts';
 import { isReasonAssets, reasonText, reasonQuotes, type ReasonAsset } from './reason-chains.ts';
 import { isIdeaAssets, type IdeaAsset } from './idea-assets.ts';
