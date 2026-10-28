@@ -1,7 +1,5 @@
 # LinguaType
 
-[下载 EdgeOne 上传包](release/linguatype-edgeone-20261029.zip) · [部署说明](EDGEONE-DEPLOY.md)
-
 面向中文母语 IELTS 写作者的写作工作台。自己写作和修改，按需解决表达卡点，再从自己确认过的旧文中找到复用线索。
 
 ## 四步点击体验
@@ -23,4 +21,4 @@
 
 需要 Node.js 22.13 或以上版本。在 prototype 目录执行 npm ci，然后 npm run dev:demo。检查使用 npm run test:demo、npm run typecheck 与 npm run build:demo。
 
-按照部署说明，将预先打包的 ZIP 上传到 EdgeOne Pages/Makers 即可，无需在云端安装依赖。ZIP 根目录直接包含 index.html、assets、brand 与 edgeone.json。域名和访问限制以 EdgeOne 当前控制台规则为准；这个仓库的更新不代表 EdgeOne 已完成发布。公开源码尚未授予额外开源许可。
+预打包 ZIP 和 dist 已移除。源码仍可按上述命令本地运行和构建。公开源码尚未授予额外开源许可。
